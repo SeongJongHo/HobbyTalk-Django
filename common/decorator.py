@@ -1,6 +1,8 @@
+import json
 from functools import wraps
 
-from common.exceptions import UnauthorizedException
+from common.exceptions import JsonDecodeException, UnauthorizedException, ValidationException
+from pydantic import ValidationError, BaseModel
 from users.models import UserRole
 
 def require_role(required_role: str):
@@ -16,4 +18,21 @@ def require_role(required_role: str):
 
             return view_func(request, *args, **kwargs)
         return _wrapped_view
+    return decorator
+
+def validate_body(schema_cls: type[BaseModel]):
+    def decorator(view_func):
+        @wraps(view_func)
+        def wrapper(request, *args, **kwargs):
+            try:
+                raw = json.loads(request.body)
+                validated = schema_cls(**raw)
+                request.validated = validated
+            except ValidationError as e:
+                raise ValidationException(f"유효하지 않은 요청 본문입니다. {e.errors}", status=400)
+            except json.JSONDecodeError:
+                raise JsonDecodeException(f"유효하지 않은 요청 본문입니다. {request.body}", status=400)
+
+            return view_func(request, *args, **kwargs)
+        return wrapper
     return decorator

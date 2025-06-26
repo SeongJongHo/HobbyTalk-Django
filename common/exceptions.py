@@ -27,3 +27,11 @@ class ConflictException(BusinessException):
 class InvalidTokenException(BusinessException):
     def __init__(self, message: str = "Invalid token", status: int = 401):
         super().__init__(message, status)
+
+class ValidationException(BusinessException):
+    def __init__(self, message: str = "Validation error", status: int = 400):
+        super().__init__(message, status)
+
+class JsonDecodeException(BusinessException):
+    def __init__(self, message: str = "Invalid JSON format", status: int = 400):
+        super().__init__(message, status)
