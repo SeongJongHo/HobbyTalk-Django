@@ -32,6 +32,14 @@ env.read_env(os.path.join(BASE_DIR, '.env.' + ENV_FILE_NAME))
 SECRET_KEY = env('JWT_SECRET', default='django-insecure-!@#%$^&*()_+')
 ALGORITHM = env('JWT_ALGORITHM', default='HS256')
 
+REDIS_CONFIG = {
+    'host'     : env('REDIS_HOST', default='localhost'),
+    'port'     : env.int('REDIS_PORT', default=6379),
+    'db'       : env.int('REDIS_DB', default=0),
+    'username' : env('REDIS_USERNAME', default='default'),
+    'password' : env('REDIS_PASSWORD', default=None),
+}
+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env.bool('DEBUG', default=False)
 
