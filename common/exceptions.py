@@ -35,3 +35,15 @@ class ValidationException(BusinessException):
 class JsonDecodeException(BusinessException):
     def __init__(self, message: str = "Invalid JSON format", status: int = 400):
         super().__init__(message, status)
+
+class AlreadyExistsException(BusinessException):
+    def __init__(self, message: str = "Resource already exists", status: int = 409):
+        super().__init__(message, status)
+
+class InvalidTokenException(BusinessException):
+    def __init__(self, message: str = "Invalid token", status: int = 401):
+        super().__init__(message, status)
+
+class InvalidValueException(BusinessException):
+    def __init__(self, message: str = "Invalid value", status: int = 400):
+        super().__init__(message, status)
