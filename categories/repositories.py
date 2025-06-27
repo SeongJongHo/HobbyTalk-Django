@@ -3,10 +3,10 @@ from categories.models import Category
 
 class CategoryRepository:
     def find_by_id(self, category_id: int) -> Category | None:
-        return Category.objects.filter(id=category_id, deleted_time=None).first()
+        return Category.objects.filter(id=category_id, deleted_at=None).first()
     
     def find_all(self) -> list[Category]:
-        return list(Category.objects.filter(deleted_time=None).order_by('-created_at'))
+        return list(Category.objects.filter(deleted_at=None).order_by('-created_at'))
 
 def categoryRepositoryFactory() ->  Callable[[], CategoryRepository]:
     _instance = None
