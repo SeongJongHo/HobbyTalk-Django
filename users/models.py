@@ -8,9 +8,9 @@ class UserRole:
     USER = 'USER'
 
     _labels = {
-            UNKNOWN: 'Unknown',
-            ADMIN: 'Admin',
-            USER: 'User',
+            UNKNOWN: 'UNKNOWN',
+            ADMIN: 'ADMIN',
+            USER: 'USER',
         }
     
     _role_levels = {
