@@ -34,6 +34,8 @@ SECRET_KEY = env('JWT_SECRET', default='django-insecure-!@#%$^&*()_+')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env.bool('DEBUG', default=False)
 
+APPEND_SLASH = False
+
 ALLOWED_HOSTS = [
     env('ALLOWED_HOST', default='*'),
 ]
