@@ -1,4 +1,4 @@
-from requests import Response
+from django.http import JsonResponse
 
 class ResponseMsg:
     SUCCESS = "Success"
@@ -14,9 +14,9 @@ class ResponseGenerator:
         }
         if data is not None:
             response_body['data'] = data
-        
-        response = Response(response_body, status=status)
+
+        response = JsonResponse(response_body, status=status)
         if kwargs.get('refresh_token') is not None:
             response.cookies.set('refresh_token', kwargs.get('refresh_token'), httponly=True)
-
+            
         return response
