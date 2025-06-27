@@ -2,28 +2,61 @@ import datetime
 import bcrypt
 import jwt
 
+from common.exceptions import InvalidTokenException
 from config.settings import ALGORITHM, SECRET_KEY
+from users.models import UserRole
 
 
 class PasswordEncoder:
     @staticmethod
     def encode(password: str) -> str:
 
-        return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt(8)).decode('utf-8')
+        return bcrypt.hashpw(password.encode(), bcrypt.gensalt(8)).decode()
     
     @staticmethod
     def verify(password: str, hashed_password: str) -> bool:
 
-        return bcrypt.checkpw(password.encode('utf-8'), hashed_password.encode('utf-8'))
+        return bcrypt.checkpw(password.encode(), hashed_password.encode())
+
+class TokenPayload:
+    user_id: int
+    role: str
+    is_accessToken: bool
+    exp: datetime.datetime
+    def __init__(self, user_id: int, role: str, is_accessToken: bool, exp: int):
+        self.user_id = user_id
+        self.role = role
+        self.is_accessToken = is_accessToken
+        self.exp = exp
+
+    def to_dict(self) -> dict:
+        return {
+            'user_id': self.user_id,
+            'role': self.role,
+            'is_accessToken': self.isAccessToken,
+            'exp': datetime.utcnow() + datetime.timedelta(minutes=self.exp) if self.exp else None
+        }
+    
+    @staticmethod
+    def of(dict: dict) -> 'TokenPayload':
+        return TokenPayload(
+            user_id=dict.get('user_id'),
+            role=dict.get('role'),
+            is_accessToken=dict.get('is_accessToken'),
+            exp=dict.get('exp')
+        )
+
 
 class TokenProvider:
     @staticmethod
-    def encode(payload: dict, expire_minutes: int = 10) -> str:
-        if 'exp' not in payload:
-            payload['exp'] = datetime.utcnow() + datetime.timedelta(minutes=expire_minutes)
-
-        return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
+    def encode(payload: TokenPayload) -> str:
+        return jwt.encode(payload.to_dict(), SECRET_KEY, algorithm=ALGORITHM)
     
     @staticmethod
-    def decode(token: str) -> dict:
-        return jwt.decode(token, SECRET_KEY, algorithms=ALGORITHM)
+    def decode(token: str) -> TokenPayload:
+        try:
+            return jwt.decode(token, SECRET_KEY, algorithms=ALGORITHM)
+        except jwt.ExpiredSignatureError:
+            raise InvalidTokenException("토큰이 만료되었습니다.", status=401)
+        except jwt.InvalidTokenError:
+            raise InvalidTokenException("유효하지 않은 토큰입니다.", status=401)
