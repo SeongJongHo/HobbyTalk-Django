@@ -2,7 +2,6 @@ from typing import Callable
 from categories.repositories import CategoryRepository, get_category_repository
 from common.exceptions import NotFoundException
 
-
 class CategoryService:
     def __init__(self, category_repository: CategoryRepository):
         self.category_repository = category_repository
