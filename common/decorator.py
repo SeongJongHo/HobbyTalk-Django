@@ -1,6 +1,5 @@
-import json
+import json, time
 from functools import wraps
-from time import time
 
 from common.exceptions import JsonDecodeException, RetryException, UnauthorizedException, ValidationException
 from pydantic import ValidationError, BaseModel
