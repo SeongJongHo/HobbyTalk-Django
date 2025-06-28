@@ -54,3 +54,25 @@ class SignUpDto(BaseModel):
             phone_number=self.phone_number,
             profile_image=self.profile_image
         )
+    
+class SignInDto(BaseModel):
+    username: str = Field(..., min_length=1, description="사용자 이름 (NotEmpty)")
+    password: str = Field(
+        ...,
+        min_length=8,
+        description="비밀번호는 8자 이상의 영문, 숫자, 특수문자 조합이어야 합니다."
+    )
+
+    @classmethod
+    def _validate_password(cls, value: str) -> str:
+        if not re.search(r'[A-Za-z]', value):
+            raise ValidationException("비밀번호에는 영문자가 포함되어야 합니다.")
+        if not re.search(r'\d', value):
+            raise ValidationException("비밀번호에는 숫자가 포함되어야 합니다.")
+        if not re.search(r'[@#$%^&+=!]', value):
+            raise ValidationException("비밀번호에는 특수문자가 포함되어야 합니다.")
+        return value
+    
+    def __init__(self, **data):
+        data['password'] = self._validate_password(data.get('password', ''))
+        super().__init__(**data)
