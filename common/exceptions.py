@@ -47,3 +47,15 @@ class InvalidTokenException(BusinessException):
 class InvalidValueException(BusinessException):
     def __init__(self, message: str = "Invalid value", status: int = 400):
         super().__init__(message, status)
+
+class TooManyCreateException(BusinessException):
+    def __init__(self, message: str = "Too many create requests", status: int = 429):
+        super().__init__(message, status)
+
+class LockAcquireException(BusinessException):
+    def __init__(self, message: str = "Failed to acquire lock", status: int = 503):
+        super().__init__(message, status)
+
+class RetryException(BusinessException):
+    def __init__(self, message: str = "Retryable operation failed", status: int = 500):
+        super().__init__(message, status)

@@ -2,7 +2,7 @@ import json
 from functools import wraps
 from time import time
 
-from common.exceptions import JsonDecodeException, UnauthorizedException, ValidationException
+from common.exceptions import JsonDecodeException, RetryException, UnauthorizedException, ValidationException
 from pydantic import ValidationError, BaseModel
 from users.models import UserRole
 
@@ -61,10 +61,10 @@ def retryable(max_retries: int = 3, delay: int = 1):
             while retries < max_retries:
                 try:
                     return func(self, *args, **kwargs)
-                except Exception as e:
+                except RetryException as e:
                     retries += 1
                     if retries >= max_retries:
-                        raise e
+                        raise RetryException(f"최대 재시도 횟수({max_retries})를 초과했습니다. e: {e.message}") from e
                     time.sleep(delay)
         return wrapper
     return decorator
