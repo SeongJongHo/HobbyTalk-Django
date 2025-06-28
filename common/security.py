@@ -55,7 +55,7 @@ class TokenProvider:
     @staticmethod
     def decode(token: str) -> TokenPayload:
         try:
-            return jwt.decode(token, SECRET_KEY, algorithms=ALGORITHM)
+            return TokenPayload.of(jwt.decode(token, SECRET_KEY, algorithms=ALGORITHM))
         except jwt.ExpiredSignatureError:
             raise InvalidTokenException("토큰이 만료되었습니다.", status=401)
         except jwt.InvalidTokenError:
