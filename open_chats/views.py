@@ -22,7 +22,7 @@ class OpenChatRoomViewV1(View):
             status=201
         )
 
-class ReadOpenChatRoomViewV1(View):
+class ReadMyOpenChatRoomViewV1(View):
     def __init__(self, open_chat_room_service: ReadOpenChatRoomService = get_read_open_chat_room_service()):
         self.read_open_chat_room_service = open_chat_room_service
 
@@ -36,5 +36,26 @@ class ReadOpenChatRoomViewV1(View):
         return ResponseGenerator.build(
             message=ResponseMsg.SUCCESS,
             data={ 'open_chat_room_id': self.read_open_chat_room_service.get_my_open_chat_rooms(user_id, last_created_at, offset, limit) },
+            status=200
+        )
+
+class ReadCategoryOpenChatRoomViewV1(View):
+    def __init__(self, open_chat_room_service: ReadOpenChatRoomService = get_read_open_chat_room_service()):
+        self.read_open_chat_room_service = open_chat_room_service
+
+    def get(self, request):
+        user_id = request.user.get('user_id', None)
+        last_created_at = request.GET.get('last_created_at', datetime.now())
+        limit = int(request.GET.get('limit', 100))
+        category_id = request.GET.get('category_id', None)
+
+        return ResponseGenerator.build(
+            message=ResponseMsg.SUCCESS,
+            data= self.read_open_chat_room_service.get_open_chat_rooms_by_category(
+                category_id, 
+                user_id,
+                last_created_at,
+                limit
+            ),
             status=200
         )
