@@ -59,6 +59,22 @@ class ReadOpenChatRoomRepository:
         )
 
         return list(qs)
+    def find_by_category_id(self, category_id: int, user_id: int, last_created_at: str, limit: int):
+        no_offset = 0
+        qs = OpenChatRoom.objects
+        if category_id: qs = qs.filter(category_id=category_id, deleted_at=None)
+        else: qs = OpenChatRoom.objects.filter(deleted_at=None)
+        
+        qs = qs.annotate(
+            is_joined=Max(
+                'openchatroomuser__user_id',
+                filter=Q(openchatroomuser__user_id=user_id, openchatroomuser__deleted_at=None)
+            )
+        )
+        qs = qs.select_related('category')
+        qs = qs.filter(created_at__lt=last_created_at, is_joined__isnull=True).order_by('-created_at')[no_offset:limit]
+        
+        return list(qs)
 
 def get_read_open_chat_room_repository_factory() -> ReadOpenChatRoomRepository:
     _instance = None
