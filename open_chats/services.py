@@ -7,7 +7,7 @@ from common.repositories import LockRepository, get_lock_repository
 from common.security import PasswordEncoder
 from open_chats.dtos import CreateOpenChatRoomDto
 from open_chats.models import OpenChatRoomUser
-from open_chats.repositories import OpenChatRoomRepository, OpenChatRoomUserRepository, get_open_chat_room_repository, get_open_chat_room_user_repository
+from open_chats.repositories import *
 
 class OpenChatRoomService:
     MAX_CREATE_COUNT = 5
@@ -34,7 +34,7 @@ class OpenChatRoomService:
             user_id, 
             hashed_password=PasswordEncoder.encode(dto.password) if dto.password else None,
         )
-        
+
         if(self.lock_repository.acquire_lock(self.generate_lock_key(user_id), str(open_chat_room.id), ex=1)):
             try:
                 user_rooms = self.open_chat_room_user_repository.find_by_user_id(user_id)
@@ -69,3 +69,48 @@ def get_open_chat_room_service_factory() -> OpenChatRoomService:
     return get_instance
 
 get_open_chat_room_service = get_open_chat_room_service_factory()
+
+class ReadOpenChatRoomService:
+    def __init__(self, read_open_chat_room_repository: ReadOpenChatRoomRepository):
+        self.read_open_chat_room_repository = read_open_chat_room_repository
+    
+    def get_my_open_chat_rooms(self, user_id: int, last_created_at, offset: int, limit: int) -> list:
+        rooms = self.read_open_chat_room_repository.find_by_user_id(
+            user_id, 
+            last_created_at,
+            limit
+        )
+
+        return [
+            {
+                'id': room.id,
+                'title': room.title,
+                'category': room.category.name,
+                'category_id': room.category.id,
+                'created_at': room.created_at,
+                'last_activity': room.last_activity,
+                'last_chat_message': room.last_chat.message if room.last_chat else  None,
+                'recent_members': [
+                    {
+                        'id': member.user.id,
+                        'nickname': member.user.nickname,
+                        'profile_image': member.user.profile_image,
+                        'joined_at': member.created_at
+                    }
+                    for member in room.recent_members
+                ]
+            }
+            for room in rooms
+        ]
+def get_read_open_chat_room_service_factory() -> ReadOpenChatRoomService:
+    _instance = None
+    def get_instance() -> ReadOpenChatRoomService:
+        nonlocal _instance
+        if _instance is None:
+            _instance = ReadOpenChatRoomService(
+                read_open_chat_room_repository=get_read_open_chat_room_repository()
+            )
+        return _instance
+    return get_instance
+
+get_read_open_chat_room_service = get_read_open_chat_room_service_factory()
