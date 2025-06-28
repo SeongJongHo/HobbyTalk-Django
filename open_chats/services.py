@@ -1,7 +1,6 @@
 from django.db import transaction
 
 from categories.services import CategoryService, get_category_service
-from common.decorator import retryable
 from common.exceptions import LockAcquireException, NotFoundException, TooManyCreateException
 from common.repositories import LockRepository, get_lock_repository
 from common.security import PasswordEncoder
@@ -88,6 +87,8 @@ class ReadOpenChatRoomService:
                 'category': room.category.name,
                 'category_id': room.category.id,
                 'created_at': room.created_at,
+                'maximum_capacity': room.maximum_capacity,
+                'current_attendance': room.current_attendance,
                 'last_activity': room.last_activity,
                 'last_chat_message': room.last_chat.message if room.last_chat else  None,
                 'recent_members': [
@@ -99,6 +100,27 @@ class ReadOpenChatRoomService:
                     }
                     for member in room.recent_members
                 ]
+            }
+            for room in rooms
+        ]
+    
+    def get_open_chat_rooms_by_category(self, category_id: int, user_id: int, last_created_at: str, limit: int) -> list:
+        rooms = self.read_open_chat_room_repository.find_by_category_id(
+            category_id, 
+            user_id, 
+            last_created_at,
+            limit
+        )
+
+        return [
+            {
+                'id': room.id,
+                'title': room.title,
+                'maximum_capacity': room.maximum_capacity,
+                'current_attendance': room.current_attendance,
+                'category': room.category.name,
+                'created_at': room.created_at,
+                'is_private': True if room.password else False,
             }
             for room in rooms
         ]
