@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
+import logging
 from pathlib import Path
 import os
 import environ
@@ -69,6 +70,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'common.middleware.ExceptionMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -177,3 +179,8 @@ CORS_ALLOW_HEADERS = (
 	'x-csrftoken', 
 	'x-requested-with',
  )
+
+logging.basicConfig(
+    level=logging.DEBUG if ENV_FILE_NAME == 'dev' else logging.INFO,
+    format='[%(asctime)s] %(name)s %(levelname)s: %(message)s'
+)
