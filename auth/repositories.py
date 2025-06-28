@@ -9,7 +9,7 @@ class CurrentUserRepository:
         self._ttl = 60 * 60 * 24 * 30
 
     def findById(self, user_id: int) -> CurrentUser | None:
-        return CurrentUser.of(self._redis_client.get(self._generate_key(user_id)))
+        return CurrentUser.from_json(self._redis_client.get(self._generate_key(user_id)))
     
     def save(self, current_user: CurrentUser):
         self._redis_client.set(
@@ -17,6 +17,7 @@ class CurrentUserRepository:
             value=current_user.to_json(),
             ex=self._ttl
         )
+        
     def _generate_key(self, user_id: int) -> str:
         return f"{self._key_prefix}{user_id}"
 

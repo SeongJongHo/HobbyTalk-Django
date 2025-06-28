@@ -19,7 +19,14 @@ class TokenService:
         return TokenProvider.encode(self._get_payload(user_id, user_role, False))
     
     def decode_token(self, token: str) -> dict:
-        return TokenProvider.decode(token).to_dict()
+        payload = TokenProvider.decode(token)
+
+        return {
+            'user_id': payload.user_id,
+            'role': payload.role,
+            'is_access_token': payload.is_access_token,
+            'exp': payload.exp
+        }
     
     def _get_payload(self, user_id: str, role: str, is_access: bool) -> TokenPayload:
             return TokenPayload.of({
@@ -67,11 +74,30 @@ class AuthService:
         if not PasswordEncoder.verify(password, user.password):
             raise UnauthorizedException("비밀번호가 일치하지 않습니다.")
         
-        access_token = self.token_service.generate_access_token(user_id=user.id, user_role=user.role)
-        refresh_token = self.token_service.generate_refresh_token(user_id=user.id, user_role=user.role)
+        token_set = self._generate_new_tokens(user_id=user.id, user_role=user.role)
+
+        return token_set
+    
+    def refresh_token(self, refresh_token: str) -> dict:
+        payload = self.token_service.decode_token(refresh_token)
+        if payload.get('is_access_token', True):
+            raise UnauthorizedException("유효하지 않은 리프레시 토큰입니다.")
+        
+        current_user = self.current_user_repository.findById(payload.get('user_id', None))
+        if not current_user or current_user.refresh_token != refresh_token:
+            raise UnauthorizedException("유효하지 않은 리프레시 토큰입니다.")
+        
+        token_set = self._generate_new_tokens(user_id=payload['user_id'], user_role=payload['role'])
+
+        return token_set
+        
+    def _generate_new_tokens(self, user_id: int, user_role: str) -> dict:
+        access_token = self.token_service.generate_access_token(user_id=user_id, user_role=user_role)
+        refresh_token = self.token_service.generate_refresh_token(user_id=user_id, user_role=user_role)
+
         current_user = CurrentUser.of({
-            'user_id': user.id,
-            'role': user.role,
+            'user_id': user_id,
+            'role': user_role,
             'refresh_token': refresh_token
         })
         self.current_user_repository.save(current_user)
