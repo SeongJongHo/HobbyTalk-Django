@@ -17,7 +17,10 @@ class CurrentUserRepository:
             value=current_user.to_json(),
             ex=self._ttl
         )
-        
+
+    def delete(self, user_id: int):
+        self._redis_client.delete(self._generate_key(user_id))
+
     def _generate_key(self, user_id: int) -> str:
         return f"{self._key_prefix}{user_id}"
 

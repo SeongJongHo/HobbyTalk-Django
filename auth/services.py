@@ -78,6 +78,26 @@ class AuthService:
 
         return token_set
     
+    def authenticate(self, access_token: str, refresh_token: str) -> dict:
+        if not access_token or not refresh_token:
+            raise UnauthorizedException("액세스 토큰 또는 리프레시 토큰이 제공되지 않았습니다.")
+        payload = self.token_service.decode_token(access_token)
+        if not payload.get('is_access_token'):
+            raise UnauthorizedException("유효하지 않은 액세스 토큰입니다.")
+        
+        current_user = self.current_user_repository.findById(payload.get('user_id', None))
+        if not current_user:
+            raise UnauthorizedException("유효하지 않은 액세스 토큰입니다.")
+        if current_user.refresh_token != refresh_token:
+            self.current_user_repository.delete(current_user.user_id)
+            raise UnauthorizedException("유효하지 않은 리프레시 토큰입니다.")
+        
+        return {
+            'user_id': current_user.user_id,
+            'role': current_user.role,
+        }
+
+    
     def refresh_token(self, refresh_token: str) -> dict:
         payload = self.token_service.decode_token(refresh_token)
         if payload.get('is_access_token', True):
