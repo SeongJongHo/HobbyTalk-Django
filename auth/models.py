@@ -24,3 +24,7 @@ class CurrentUser:
             role=data.get('role'),
             refresh_token=data.get('refresh_token')
         )
+    @staticmethod
+    def from_json(json_str: str) -> 'CurrentUser':
+        data = DataSerializer.deserialize(json_str)
+        return CurrentUser.of(data)
