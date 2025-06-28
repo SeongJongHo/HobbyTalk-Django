@@ -21,20 +21,20 @@ class PasswordEncoder:
 class TokenPayload:
     user_id: int
     role: str
-    is_accessToken: bool
+    is_access_token: bool
     exp: datetime.datetime
-    def __init__(self, user_id: int, role: str, is_accessToken: bool, exp: int):
+    def __init__(self, user_id: int, role: str, is_access_token: bool, exp: int):
         self.user_id = user_id
         self.role = role
-        self.is_accessToken = is_accessToken
+        self.is_access_token = is_access_token
         self.exp = exp
 
     def to_dict(self) -> dict:
         return {
             'user_id': self.user_id,
             'role': self.role,
-            'is_accessToken': self.isAccessToken,
-            'exp': datetime.utcnow() + datetime.timedelta(minutes=self.exp) if self.exp else None
+            'is_access_token': self.is_access_token,
+            'exp': datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(minutes=self.exp) if self.exp else None
         }
     
     @staticmethod
@@ -42,7 +42,7 @@ class TokenPayload:
         return TokenPayload(
             user_id=dict.get('user_id'),
             role=dict.get('role'),
-            is_accessToken=dict.get('is_accessToken'),
+            is_access_token=dict.get('is_access_token'),
             exp=dict.get('exp')
         )
 

@@ -17,6 +17,6 @@ class ResponseGenerator:
 
         response = JsonResponse(response_body, status=status)
         if kwargs.get('refresh_token') is not None:
-            response.cookies.set('refresh_token', kwargs.get('refresh_token'), httponly=True)
+            response.set_cookie('refresh_token', kwargs.get('refresh_token'), httponly=True, secure=True, samesite='Strict')
             
         return response

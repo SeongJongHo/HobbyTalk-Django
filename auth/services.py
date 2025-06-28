@@ -1,7 +1,9 @@
 from collections.abc import Callable
 from django.db import transaction
 from auth.dtos import SignUpDto
-from common.exceptions import InvalidValueException
+from auth.models import CurrentUser
+from auth.repositories import CurrentUserRepository, get_current_user_repository
+from common.exceptions import InvalidValueException, NotFoundException, UnauthorizedException
 from common.security import PasswordEncoder, TokenPayload, TokenProvider
 from users.models import UserRole
 from users.services import UserService, get_user_service
@@ -23,7 +25,7 @@ class TokenService:
             return TokenPayload.of({
                 'user_id': user_id,
                 'role': role,
-                'is_accessToken': is_access,
+                'is_access_token': is_access,
                 'exp': self.ACCESS_TOKEN_EXPIRATION_MINUTES if is_access else self.REFRESH_TOKEN_EXPIRATION_MINUTES
             })
     
@@ -39,9 +41,10 @@ def token_service_factory() -> Callable[[], TokenService]:
 get_token_service = token_service_factory()
 
 class AuthService:
-    def __init__(self, user_service: UserService, token_service: TokenService):
+    def __init__(self, user_service: UserService, token_service: TokenService, current_user_repository: CurrentUserRepository):
         self.user_service = user_service
         self.token_service = token_service
+        self.current_user_repository = current_user_repository
     
     @transaction.atomic
     def sign_up(self, user: SignUpDto) -> int:
@@ -57,12 +60,36 @@ class AuthService:
 
         return user_id
     
+    def sign_in(self, username: str, password: str) -> dict:
+        user = self.user_service.user_repository.find_by_username(username)
+        if not user:
+            raise NotFoundException(f"존재하지 않는 유저네임입니다. username: {username}")
+        if not PasswordEncoder.verify(password, user.password):
+            raise UnauthorizedException("비밀번호가 일치하지 않습니다.")
+        
+        access_token = self.token_service.generate_access_token(user_id=user.id, user_role=user.role)
+        refresh_token = self.token_service.generate_refresh_token(user_id=user.id, user_role=user.role)
+        current_user = CurrentUser.of({
+            'user_id': user.id,
+            'role': user.role,
+            'refresh_token': refresh_token
+        })
+        self.current_user_repository.save(current_user)
+
+        return {
+            'access_token': access_token,
+            'refresh_token': refresh_token,
+        }
+    
 def auth_service_factory() -> Callable[[], AuthService]:
     _instance = None
     def get_instance() -> AuthService:
         nonlocal _instance
         if _instance is None:
-            _instance = AuthService(user_service=get_user_service(), token_service=get_token_service())
+            _instance = AuthService(
+                user_service=get_user_service(), 
+                token_service=get_token_service(), 
+                current_user_repository=get_current_user_repository())
         return _instance
     return get_instance
 
