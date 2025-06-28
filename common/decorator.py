@@ -1,5 +1,6 @@
 import json
 from functools import wraps
+from time import time
 
 from common.exceptions import JsonDecodeException, UnauthorizedException, ValidationException
 from pydantic import ValidationError, BaseModel
@@ -50,4 +51,20 @@ def guarded_by_role(required_role: str):
                 raise UnauthorizedException(f"권한이 없습니다. 현재 권한: {user.get('role', None)}, 필요한 권한: {required_role}")
             return view_func(self, request, *args, **kwargs)
         return _wrapped_view
+    return decorator
+
+def retryable(max_retries: int = 3, delay: int = 1):
+    def decorator(func):
+        @wraps(func)
+        def wrapper(self, *args, **kwargs):
+            retries = 0
+            while retries < max_retries:
+                try:
+                    return func(self, *args, **kwargs)
+                except Exception as e:
+                    retries += 1
+                    if retries >= max_retries:
+                        raise e
+                    time.sleep(delay)
+        return wrapper
     return decorator
