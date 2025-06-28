@@ -16,8 +16,8 @@ class RedisClient:
             password=REDIS_CONFIG['password']
         )
 
-    def set(self, key: str, value: Union[str, bytes], ex: Optional[int] = None) -> bool:
-        return self._redis.set(name=key, value=value, ex=ex)
+    def set(self, key: str, value: Union[str, bytes], ex: Optional[int] = None, nx: bool = None) -> bool:
+        return self._redis.set(name=key, value=value, ex=ex, nx=nx)
 
     def get(self, key: str) -> Optional[str]:
         return self._redis.get(name=key)
