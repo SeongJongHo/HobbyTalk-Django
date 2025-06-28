@@ -14,7 +14,7 @@ class AuthMiddleware:
         try:
             user = self.auth_service.authenticate(access_token, refresh_token)
             request.user = {
-                'user_id': user.get('user_id', None),
+                'user_id': user.get('user_id', 0),
                 'role': user.get('role', UserRole.UNKNOWN),
             }
         except Exception as e:
