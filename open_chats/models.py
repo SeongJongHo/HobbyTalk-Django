@@ -1,7 +1,7 @@
 from django.db import models
 
 from categories.models import Category
-from common.models import BaseModel
+from common.models import BaseCacheModel, BaseModel
 from users.models import User
 
 class OpenChatRoom(BaseModel):
@@ -99,3 +99,16 @@ class OpenChat(BaseModel):
 
     def __str__(self):
         return f"{self.sender.username} in {self.open_chat_room.title}: {self.message[:20]}..."
+
+class OpenChatCache(BaseCacheModel):
+    sender_id: int
+    open_chat_room_id: int
+    message: str
+    message_type: int
+
+    def __init__(self, sender_id: int, open_chat_room_id: int, message: str, message_type: int, id=None, created_at=None, updated_at=None, deleted_at=None):
+        super().__init__(id=id, created_at=created_at, updated_at=updated_at, deleted_at=deleted_at)
+        self.sender_id = sender_id
+        self.open_chat_room_id = open_chat_room_id
+        self.message = message
+        self.message_type = message_type
