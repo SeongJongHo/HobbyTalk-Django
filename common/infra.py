@@ -57,6 +57,9 @@ class RedisClient:
 
     def publish(self, channel: str, message: Union[str, bytes]) -> int:
         return self._redis.publish(channel, message)
+    
+    def evaluate(self, script: str, keys: List[str] = [], args: List[Union[str, bytes]] = []) -> Union[str, int, None]:
+        return self._redis.eval(script, len(keys), *keys, *args)
 
     def subscribe(self, *channels: str):
         pubsub = self._redis.pubsub()
