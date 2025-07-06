@@ -4,6 +4,7 @@ from categories.services import CategoryService, get_category_service
 from common.exceptions import LockAcquireException, NotFoundException, TooManyCreateException
 from common.repositories import LockRepository, get_lock_repository
 from common.security import PasswordEncoder
+from common.snowflake import generate_id
 from open_chats.dtos import CreateOpenChatRoomDto
 from open_chats.models import OpenChatRoomUser
 from open_chats.repositories import *
@@ -136,3 +137,10 @@ def get_read_open_chat_room_service_factory() -> ReadOpenChatRoomService:
     return get_instance
 
 get_read_open_chat_room_service = get_read_open_chat_room_service_factory()
+
+class OpenChatService:
+    def __init__(self, open_chat_cache_repository: OpenChatCacheRepository):
+        self.open_chat_cache_repository = open_chat_cache_repository
+
+    def save(self, open_chat_cache: OpenChatCache, event_id: str = generate_id()):
+        return self.open_chat_cache_repository.save(open_chat_cache, event_id)
