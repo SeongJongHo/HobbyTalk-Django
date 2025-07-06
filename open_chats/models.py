@@ -1,3 +1,4 @@
+import json
 from django.db import models
 
 from categories.models import Category
@@ -112,3 +113,18 @@ class OpenChatCache(BaseCacheModel):
         self.open_chat_room_id = open_chat_room_id
         self.message = message
         self.message_type = message_type
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'created_at': self.created_at if self.created_at else None,
+            'updated_at': self.updated_at if self.updated_at else None,
+            'deleted_at': self.deleted_at if self.deleted_at else None,
+            'sender_id': self.sender_id,
+            'open_chat_room_id': self.open_chat_room_id,
+            'message': self.message,
+            'message_type': self.message_type
+        }
+    
+    def to_json(self):
+        return json.dumps(self.to_dict(), ensure_ascii=False)

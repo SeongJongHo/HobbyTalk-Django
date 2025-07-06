@@ -2,7 +2,9 @@ import datetime
 from django.db.models import Prefetch, Max, Q, F
 from django.db.models.functions import Coalesce
 from django.db.models import DateTimeField
-from open_chats.models import OpenChat, OpenChatRoom, OpenChatRoomUser
+from common.infra import RedisClient
+from open_chats.models import OpenChat, OpenChatCache, OpenChatRoom, OpenChatRoomUser
+from open_chats.utils import LuaScript, RedisKeyGenerator
 
 class OpenChatRoomRepository:
     def find_by_id(self, room_id: int):
@@ -112,3 +114,19 @@ def get_open_chat_room_user_repository_factory() -> OpenChatRoomUserRepository:
     return get_instance
 
 get_open_chat_room_user_repository = get_open_chat_room_user_repository_factory()
+
+class OpenChatCacheRepository:
+    def __init__(self, redis_client: RedisClient):
+        self.redis_client = redis_client
+
+    def save(self, open_chat_cache: OpenChatCache, event_id: str):
+        key = RedisKeyGenerator.get_chat_key(open_chat_cache.id)
+        roomKey = RedisKeyGenerator.get_cache_chat_ids_key(open_chat_cache.open_chat_room_id)
+        batchKey = RedisKeyGenerator.get_batch_chat_ids_key()
+        processedKey = RedisKeyGenerator.get_processed_chat_ids_key(event_id)
+        
+        return self.redis_client.evaluate(
+            LuaScript.get_char_save_script(),
+            keys=[roomKey, batchKey, processedKey, key],
+            args=[open_chat_cache.id, open_chat_cache.to_json]
+        )
