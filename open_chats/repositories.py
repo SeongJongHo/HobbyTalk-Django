@@ -66,22 +66,52 @@ class ReadOpenChatRoomRepository:
 
         return list(qs)
     
-    def find_by_category_id(self, category_id: int, user_id: int, last_created_at: str, limit: int):
-        no_offset = 0
-        qs = OpenChatRoom.objects
-        if category_id: qs = qs.filter(category_id=category_id, deleted_at=None)
-        else: qs = OpenChatRoom.objects.filter(deleted_at=None)
+    def find_by_category_id(self, category_id: int, user_id: int, last_created_at: str, limit: int, search: str = None) -> list:        
+        if search:
+            sql = """
+                SELECT ocr.*, c.name as category_name
+                FROM open_chat_rooms ocr
+                LEFT JOIN categories c ON c.id = ocr.category_id
+                LEFT JOIN open_chat_room_users ocru ON ocru.open_chat_room_id = ocr.id 
+                    AND ocru.user_id = %s 
+                    AND ocru.deleted_at IS NULL
+                WHERE 
+                    ocr.deleted_at IS NULL
+                    AND ocr.created_at < %s
+                    AND ocru.id IS NULL
+                    AND MATCH(ocr.title) AGAINST(%s IN NATURAL LANGUAGE MODE)
+            """
+            params = [user_id, last_created_at, search]
+            
+            if category_id:
+                sql += " AND ocr.category_id = %s"
+                params.append(category_id)
+                
+            sql += """
+                ORDER BY MATCH(ocr.title) AGAINST(%s IN NATURAL LANGUAGE MODE) DESC, ocr.created_at DESC
+                LIMIT %s
+            """
+            params.extend([search, limit])
+            
+            return list(OpenChatRoom.objects.raw(sql, params))
         
-        qs = qs.annotate(
-            is_joined=Max(
-                'openchatroomuser__user_id',
-                filter=Q(openchatroomuser__user_id=user_id, openchatroomuser__deleted_at=None)
+        else:
+            no_offset = 0
+            qs = OpenChatRoom.objects
+            if category_id: qs = qs.filter(category_id=category_id, deleted_at=None)
+            else: qs = OpenChatRoom.objects.filter(deleted_at=None)
+            
+            qs = qs.annotate(
+                is_joined=Max(
+                    'openchatroomuser__user_id',
+                    filter=Q(openchatroomuser__user_id=user_id, openchatroomuser__deleted_at=None)
+                )
             )
-        )
-        qs = qs.select_related('category')
-        qs = qs.filter(created_at__lt=last_created_at, is_joined__isnull=True).order_by('-created_at')[no_offset:limit]
-        
-        return list(qs)
+            qs = qs.select_related('category')
+            qs = qs.filter(created_at__lt=last_created_at, is_joined__isnull=True)
+            qs = qs.order_by('-created_at')
+            
+            return list(qs[no_offset:limit])
 
 def get_read_open_chat_room_repository_factory() -> ReadOpenChatRoomRepository:
     _instance = None

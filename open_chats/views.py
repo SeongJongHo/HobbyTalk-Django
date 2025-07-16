@@ -48,14 +48,16 @@ class ReadCategoryOpenChatRoomViewV1(View):
         last_created_at = request.GET.get('last_created_at', datetime.now())
         limit = int(request.GET.get('limit', 100))
         category_id = request.GET.get('category_id', None)
-
+        search = request.GET.get('search', None)
+        print(f"category_id: {category_id}, search: {search}")
         return ResponseGenerator.build(
             message=ResponseMsg.SUCCESS,
             data= self.read_open_chat_room_service.get_open_chat_rooms_by_category(
                 category_id, 
                 user_id,
                 last_created_at,
-                limit
+                limit,
+                search
             ),
             status=200
         )

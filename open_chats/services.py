@@ -105,12 +105,13 @@ class ReadOpenChatRoomService:
             for room in rooms
         ]
     
-    def get_open_chat_rooms_by_category(self, category_id: int, user_id: int, last_created_at: str, limit: int) -> list:
+    def get_open_chat_rooms_by_category(self, category_id: int, user_id: int, last_created_at: str, limit: int, search: str) -> list:
         rooms = self.read_open_chat_room_repository.find_by_category_id(
             category_id, 
             user_id, 
             last_created_at,
-            limit
+            limit,
+            search=search
         )
 
         return [
