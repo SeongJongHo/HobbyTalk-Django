@@ -71,6 +71,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'common.middleware.ExceptionMiddleware',
     'auth.middleware.AuthMiddleware',
     'django.middleware.security.SecurityMiddleware',
