@@ -30,6 +30,16 @@ class CategoryService:
             }
             for category in categories
         ]
+    
+    def get_trending_categories(self) -> list[dict]:
+        return [
+            {   
+                "id": category.id,
+                "name": category.name,
+                "open_chat_room_count": category.open_chat_room_count   
+            }
+            for category in self.category_repository.find_trending_categories()
+        ]
 
 def categoryServiceFactory() -> Callable[[], CategoryService]:
     _instance = None
