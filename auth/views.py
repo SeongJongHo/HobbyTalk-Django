@@ -5,7 +5,7 @@ from auth.services import AuthService, get_auth_service
 from common.decorator import validate_body
 from common.response import ResponseGenerator, ResponseMsg
 
-class SignUpViewV1(View):
+class AuthViewV1(View):
     def __init__(self, auth_service: AuthService=get_auth_service()):
         self.auth_service = auth_service
 
@@ -17,11 +17,18 @@ class SignUpViewV1(View):
             status=201
         )
     
-    
+    def delete(self, request):
+        refresh_token = request.COOKIES.get('refresh_token', None)
 
-class TokenRefreshViewV1(View):
-    def __init__(self, auth_service: AuthService=get_auth_service()):
-        self.auth_service = auth_service
+        response = ResponseGenerator.build(
+                message=ResponseMsg.SUCCESS,
+                status=200
+            )
+        if refresh_token:
+            self.auth_service.logout(refresh_token)
+            response.delete_cookie('refresh_token')
+
+        return response
 
 class SignInViewV1(View):
     def __init__(self, auth_service: AuthService=get_auth_service()):

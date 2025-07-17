@@ -110,6 +110,11 @@ class AuthService:
         token_set = self._generate_new_tokens(user_id=payload['user_id'], user_role=payload['role'])
 
         return token_set
+    
+    def logout(self, refresh_token: str) -> None:
+        payload = self.token_service.decode_token(refresh_token)
+        
+        self.current_user_repository.delete(payload.get('user_id', None))
         
     def _generate_new_tokens(self, user_id: int, user_role: str) -> dict:
         access_token = self.token_service.generate_access_token(user_id=user_id, user_role=user_role)
