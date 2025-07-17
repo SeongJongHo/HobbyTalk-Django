@@ -16,9 +16,12 @@ Including another URLconf
 """
 from django.urls import path, include
 
+from config.views import HealthView
+
 urlpatterns = [
     path('api/query/v1/categories', include("categories.urls")),
     path('api/command/v1/auth', include("auth.urls")),
     path('api/command/v1/open-chat-rooms', include("open_chats.urls")),
     path('api/query/v1/open-chat-rooms', include("open_chats.query_urls")),
+    path('health', HealthView.as_view(), name='health'),
 ]
