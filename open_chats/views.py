@@ -35,7 +35,7 @@ class ReadMyOpenChatRoomViewV1(View):
         
         return ResponseGenerator.build(
             message=ResponseMsg.SUCCESS,
-            data={ 'open_chat_room_id': self.read_open_chat_room_service.get_my_open_chat_rooms(user_id, last_created_at, offset, limit) },
+            data=self.read_open_chat_room_service.get_my_open_chat_rooms(user_id, last_created_at, offset, limit),
             status=200
         )
 
