@@ -17,10 +17,8 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
 django_asgi_app = get_asgi_application()
 
 from auth.middleware import WebSocketAuthMiddleware
-from open_chats.comsumers import ChatConsumer
 
 websocket_urlpatterns = [
-    re_path(r'^ws/open-chat-rooms/(?P<room_id>\d+)/join/?$', ChatConsumer.as_asgi()),
 ]
 
 application = ProtocolTypeRouter({

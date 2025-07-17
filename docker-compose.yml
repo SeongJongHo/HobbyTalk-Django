@@ -1,0 +1,60 @@
+version: "3.8"
+
+networks:
+    app_network:
+        driver: bridge
+        name: app_network
+
+services:
+    mysql:
+        image: mysql:8.0
+        container_name: mysql
+        environment:
+            MYSQL_ROOT_PASSWORD: ${MYSQL_PASSWORD}
+            MYSQL_DATABASE: ${MYSQL_DATABASE}
+        ports:
+            - "${MYSQL_PORT}:3306"
+        healthcheck:
+            test:
+                [
+                    "CMD",
+                    "mysqladmin",
+                    "ping",
+                    "-h",
+                    "localhost",
+                    "-p${MYSQL_PASSWORD}",
+                ]
+            interval: 3s
+            timeout: 2s
+            retries: 10
+            start_period: 10s
+        networks:
+            - app_network
+
+    redis:
+        image: redis:7.0
+        container_name: redis
+        ports:
+            - "${REDIS_PORT}:6379"
+        environment:
+            REDIS_PASSWORD: ${REDIS_PASSWORD}
+        command: ["redis-server", "--requirepass", "${REDIS_PASSWORD}"]
+        networks:
+            - app_network
+
+    django_app:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        container_name: django_container
+        environment:
+            - DJANGO_ENV=prod
+        ports:
+            - "8000:8000"
+        depends_on:
+            redis:
+                condition: service_started
+            mysql:
+                condition: service_healthy
+        networks:
+            - app_network

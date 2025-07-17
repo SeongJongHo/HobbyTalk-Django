@@ -11,7 +11,8 @@ class AuthMiddleware:
         
         access_token = request.headers.get('Authorization', None)
         refresh_token = request.COOKIES.get('refresh_token', None)
-
+        print(f"Access Token: {access_token}, Refresh Token: {refresh_token}")
+        print(request.headers.get('cookie'))
         try:
             user = self.auth_service.authenticate(access_token, refresh_token)
             request.user = {

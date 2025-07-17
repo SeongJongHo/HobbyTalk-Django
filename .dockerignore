@@ -1,0 +1,45 @@
+# Git
+.git
+.gitignore
+README.md
+
+# Python
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+pip-log.txt
+pip-delete-this-directory.txt
+.venv
+venv/
+
+# Django
+*.log
+local_settings.py
+db.sqlite3
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Node
+node_modules/
+npm-debug.log
+
+# Environment files (except production)
+.env
+.env.local
+.env.dev
+.env.test
+
+# Testing
+.coverage
+htmlcov/
+.pytest_cache/
